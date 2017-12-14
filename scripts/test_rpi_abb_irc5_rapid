@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+import rpi_abb_irc5
+import sys
+
+def main():
+
+    if (len(sys.argv) >= 2):
+        rapid=rpi_abb_irc5.RAPID(sys.argv[1])
+    else:
+        rapid=rpi_abb_irc5.RAPID()
+    print rapid.get_execution_state()
+    rapid.resetpp()
+    rapid.start()
+    print rapid.get_execution_state()
+
+if __name__ == '__main__':
+    main()
+    
