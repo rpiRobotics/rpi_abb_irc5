@@ -64,6 +64,7 @@
   <exec_depend>python-protobuf</exec_depend>
   <exec_depend>python-requests</exec_depend>
   <exec_depend>python-websocket</exec_depend>
+  <exec_depend>python-numpy</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

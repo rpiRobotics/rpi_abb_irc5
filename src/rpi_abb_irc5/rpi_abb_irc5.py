@@ -36,6 +36,7 @@ from BeautifulSoup import BeautifulSoup
 import traceback
 from websocket import create_connection
 from collections import namedtuple
+import numpy as np
 
 class EGM(object):
 
@@ -71,7 +72,7 @@ class EGM(object):
 
         if robot_message.HasField('feedBack'):
             joints=robot_message.feedBack.joints.joints
-            joint_angles=list(joints)
+            joint_angles=np.array(list(joints))
 
         return True, EGMRobotState(joint_angles, robot_message)
 
@@ -91,7 +92,8 @@ class EGM(object):
 
         planned=sensorMessage.planned
 
-        planned.joints.joints.extend(joint_angles)
+        joint_angles2 = list(np.rad2deg(joint_angles))
+        planned.joints.joints.extend(joint_angles2)
 
         buf2=sensorMessage.SerializeToString()
 
