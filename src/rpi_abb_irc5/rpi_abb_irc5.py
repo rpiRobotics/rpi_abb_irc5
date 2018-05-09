@@ -68,13 +68,18 @@ class EGM(object):
         robot_message.ParseFromString(buf)
 
         joint_angles=None
-        motor_state=None
+        rapid_running=False
+        motors_on=False
 
         if robot_message.HasField('feedBack'):
             joints=robot_message.feedBack.joints.joints
             joint_angles=np.array(list(joints))
+        if robot_message.HasField('rapidExecState'):
+            rapid_running = robot_message.rapidExecState.state == robot_message.rapidExecState.RAPID_RUNNING
+        if robot_message.HasField('motorState'):
+            motors_on = robot_message.motorState.state == robot_message.motorState.MOTORS_ON
 
-        return True, EGMRobotState(joint_angles, robot_message)
+        return True, EGMRobotState(joint_angles, rapid_running, motors_on, robot_message)
 
     def send_to_robot(self, joint_angles):
 
@@ -98,13 +103,13 @@ class EGM(object):
         buf2=sensorMessage.SerializeToString()
 
         try:
-           self.socket.sendto(buf2, self.egm_addr)
+            self.socket.sendto(buf2, self.egm_addr)
         except:
             return False
 
         return True
 
-EGMRobotState=namedtuple('EGMRobotState', ['joint_angles', 'robot_message'], verbose=False)
+EGMRobotState=namedtuple('EGMRobotState', ['joint_angles', 'rapid_running', 'motors_on', 'robot_message'], verbose=False)
 
 class RAPID(object):
 

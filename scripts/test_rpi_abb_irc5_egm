@@ -3,6 +3,7 @@
 import rpi_abb_irc5
 import time
 import math
+import numpy as np
 
 def main():
     try:
@@ -10,7 +11,7 @@ def main():
 
         while True:
             res, state=egm.receive_from_robot(.01)
-            angle=10*math.sin(time.time())
+            angle=np.deg2rad(10*math.sin(time.time()))
             if res:
                 print "Joints: " + str(state.joint_angles)
                 joint_angles=[angle]*6
