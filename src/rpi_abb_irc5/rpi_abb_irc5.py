@@ -127,9 +127,12 @@ class RAPID(object):
         res=requests.post(url, data=payload, auth=self.auth)
         return self._process_response(res)
 
-    def _process_response(self, response):
-
+    def _process_response(self, response):        
         soup=BeautifulSoup(response.text)
+
+        if (response.status_code == 500):
+            raise Exception("Robot returning 500 Internal Server Error")
+    
 
         if (response.status_code == 200 or response.status_code==204):
             return soup.body
@@ -148,7 +151,8 @@ class RAPID(object):
         res=self._do_post("rw/rapid/execution?action=start", payload)
 
     def stop(self):
-        res=self._do_post("rw/rapid/execution?action=stop")
+        payload={"stopmode": "stop"}
+        res=self._do_post("rw/rapid/execution?action=stop", payload)
 
     def resetpp(self):
         res=self._do_post("rw/rapid/execution?action=resetpp")
@@ -158,6 +162,16 @@ class RAPID(object):
         ctrlexecstate=soup.find('span', attrs={'class': 'ctrlexecstate'}).text
         cycle=soup.find('span', attrs={'class': 'cycle'}).text
         return RAPIDExecutionState(ctrlexecstate, cycle)
+    
+    def get_digital_io(self, signal, network='Local', unit='DRV_1'):
+        soup = self._do_get("rw/iosystem/signals/" + network + "/" + unit + "/" + signal)
+        state = soup.find('span', attrs={'class': 'lvalue'}).text
+        return int(state)
+    
+    def set_digital_io(self, signal, value, network='Local', unit='DRV_1'):
+        lvalue = '1' if bool(value) else '0'
+        payload={'lvalue': lvalue}
+        res=self._do_post("rw/iosystem/signals/" + network + "/" + unit + "/" + signal + "?action=set", payload)
 
 RAPIDExecutionState=namedtuple('RAPIDExecutionState', ['ctrlexecstate', 'cycle'], verbose=False)
 
