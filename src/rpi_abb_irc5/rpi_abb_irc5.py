@@ -37,6 +37,8 @@ import traceback
 from websocket import create_connection
 from collections import namedtuple
 import numpy as np
+from datetime import datetime
+import errno
 
 class EGM(object):
 
@@ -52,7 +54,13 @@ class EGM(object):
 
         s=self.socket
         s_list=[s]
-        res=select.select(s_list, [], s_list, timeout)
+        try:
+            res=select.select(s_list, [], s_list, timeout)
+        except select.error as err:
+            if err.args[0] == errno.EINTR:
+                return False, None
+            else:
+                raise
 
         if len(res[0]) == 0 and len(res[2])==0:
             return False, None
@@ -146,8 +154,8 @@ class RAPID(object):
 
         raise ABBException(error_message, error_code)
 
-    def start(self):
-        payload={"regain": "continue", "execmode": "continue" , "cycle": "once", "condition": "none", "stopatbp": "disabled", "alltaskbytsp": "false"}
+    def start(self, cycle='asis'):
+        payload={"regain": "continue", "execmode": "continue" , "cycle": cycle, "condition": "none", "stopatbp": "disabled", "alltaskbytsp": "false"}
         res=self._do_post("rw/rapid/execution?action=start", payload)
 
     def stop(self):
@@ -163,8 +171,16 @@ class RAPID(object):
         cycle=soup.find('span', attrs={'class': 'cycle'}).text
         return RAPIDExecutionState(ctrlexecstate, cycle)
     
+    def get_controller_state(self):
+        soup = self._do_get("rw/panel/ctrlstate")
+        return soup.find('span', attrs={'class': 'ctrlstate'}).text
+    
+    def get_operation_mode(self):
+        soup = self._do_get("rw/panel/opmode")        
+        return soup.find('span', attrs={'class': 'opmode'}).text
+    
     def get_digital_io(self, signal, network='Local', unit='DRV_1'):
-        soup = self._do_get("rw/iosystem/signals/" + network + "/" + unit + "/" + signal)
+        soup = self._do_get("rw/iosystem/signals/" + network + "/" + unit + "/" + signal)        
         state = soup.find('span', attrs={'class': 'lvalue'}).text
         return int(state)
     
@@ -172,8 +188,35 @@ class RAPID(object):
         lvalue = '1' if bool(value) else '0'
         payload={'lvalue': lvalue}
         res=self._do_post("rw/iosystem/signals/" + network + "/" + unit + "/" + signal + "?action=set", payload)
+        
+    def read_event_log(self, elog=0):
+        o=[]
+        soup = self._do_get("rw/elog/" + str(elog) + "/?lang=en")
+        state=soup.find('div', attrs={'class': 'state'})
+        ul=state.find('ul')
+        
+        for li in ul.findAll('li'):
+            def find_val(v):
+                return li.find('span', attrs={'class': v}).text
+            msg_type=int(find_val('msgtype'))
+            code=int(find_val('code'))
+            tstamp=datetime.strptime(find_val('tstamp'), '%Y-%m-%d T  %H:%M:%S')
+            title=find_val('title')
+            desc=find_val('desc')
+            conseqs=find_val('conseqs')
+            causes=find_val('causes')
+            actions=find_val('actions')
+            args=[]
+            nargs=int(find_val('argc'))
+            for i in xrange(nargs):
+                arg=find_val('arg%d' % (i+1))
+                args.append(arg)
+            
+            o.append(RAPIDEventLogEntry(msg_type,code,tstamp,args,title,desc,conseqs,causes,actions))
+        return o
 
 RAPIDExecutionState=namedtuple('RAPIDExecutionState', ['ctrlexecstate', 'cycle'], verbose=False)
+RAPIDEventLogEntry=namedtuple('RAPIDEventLogEntry', ['msgtype', 'code', 'tstamp', 'args', 'title', 'desc', 'conseqs', 'causes', 'actions'])
 
 class ABBException(Exception):
     def __init__(self, message, code):
