@@ -188,6 +188,10 @@ class RAPID(object):
         lvalue = '1' if bool(value) else '0'
         payload={'lvalue': lvalue}
         res=self._do_post("rw/iosystem/signals/" + network + "/" + unit + "/" + signal + "?action=set", payload)
+    
+    def update_rapid_variable(self, var, value):
+        payload={'value': value}
+        res=self._do_post("rw/rapid/symbol/data/RAPID/T_ROB1/" + var + "?action=set", payload)
         
     def read_event_log(self, elog=0):
         o=[]
