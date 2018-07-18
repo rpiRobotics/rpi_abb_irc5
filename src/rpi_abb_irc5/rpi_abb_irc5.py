@@ -188,6 +188,15 @@ class RAPID(object):
         lvalue = '1' if bool(value) else '0'
         payload={'lvalue': lvalue}
         res=self._do_post("rw/iosystem/signals/" + network + "/" + unit + "/" + signal + "?action=set", payload)
+    
+    def get_rapid_variable(self, var):
+        soup = self._do_get("rw/rapid/symbol/data/RAPID/T_ROB1/" + var)        
+        state = soup.find('span', attrs={'class': 'value'}).text
+        return state
+    
+    def set_rapid_variable(self, var, value):
+        payload={'value': value}
+        res=self._do_post("rw/rapid/symbol/data/RAPID/T_ROB1/" + var + "?action=set", payload)
         
     def read_event_log(self, elog=0):
         o=[]
