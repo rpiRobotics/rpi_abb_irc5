@@ -1,0 +1,8 @@
+string CYCLE_ASIS="asis"
+string CYCLE_ONCE="once"
+string CYCLE_ONCE_DONE="oncedone"
+string CYCLE_FOREVER="forever"
+bool reset_pp
+string cycle
+---
+bool success

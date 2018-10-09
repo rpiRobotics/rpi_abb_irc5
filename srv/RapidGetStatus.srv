@@ -1,0 +1,24 @@
+---
+string CYCLE_ASIS="asis"
+string CYCLE_ONCE="once"
+string CYCLE_ONCE_DONE="oncedone"
+string CYCLE_FOREVER="forever"
+string OPMODE_INIT="INIT"           #State init
+string OPMODE_AUTO_CH="AUTO_CH"     #State change request for automatic mode
+string OPMODE_MANF_CH="MANF_CH"     #State change request for manual mode & full speed
+string OPMODE_MANR="MANR"           #State manual mode & reduced speed
+string OPMODE_MANF="MANF"           #State manual mode & full speed
+string OPMODE_AUTO="AUTO"           #State automatic mode
+string OPMODE_UNDEFINED="UNDEFINED" #Undefined
+string CTRLSTATE_INIT="init"
+string CTRLSTATE_MOTORON="motoron"
+string CTRLSTATE_MOTOROFF="motoroff"
+string CTRLSTATE_GUARDSTOP="guardstop"
+string CTRLSTATE_EMERGENCYSTOP="emergencystop"
+string CTRLSTATE_EMERGENCYSTOPRESET="emergencystopreset"
+string CTRLSTATE_SYSFAIL="sysfail"
+bool success
+bool running
+string cycle
+string opmode
+string ctrlstate

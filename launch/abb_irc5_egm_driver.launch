@@ -1,0 +1,4 @@
+<launch>
+  <node name="abb_irc5_egm_driver" pkg="rpi_abb_irc5" type="abb_irc5_egm_driver_ros" required="true">
+  </node>
+</launch>

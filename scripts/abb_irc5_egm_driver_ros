@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+
+# Copyright (c) 2017, Rensselaer Polytechnic Institute, Wason Technology LLC
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the Rensselaer Polytechnic Institute, or Wason 
+#       Technology LLC, nor the names of its contributors may be used to 
+#       endorse or promote products derived from this software without 
+#       specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+import rospy
+import rpi_abb_irc5
+from std_msgs.msg import Float64
+from sensor_msgs.msg import JointState 
+import threading
+import copy
+
+joint_setpoint = None
+joint_setpoint_lock = threading.Lock()
+
+def joint_command_cb(i, msg):
+    with joint_setpoint_lock:
+        joint_setpoint[i] = msg.data
+
+def main():
+    
+    global joint_setpoint
+    
+    rospy.init_node('abb_irc5_egm')
+    
+    egm_port = int(rospy.get_param('~egm_port', 6510))
+    joint_names = rospy.get_param('controller_joint_names')
+    if not isinstance(joint_names, list):
+        raise Exception("Invalid joint name list")
+    
+    joint_setpoint = [None] * len(joint_names)
+    
+    egm = rpi_abb_irc5.EGM(port = egm_port)
+    
+    joint_states_pub = rospy.Publisher("joint_states", JointState, queue_size = 10)
+    
+    joint_command_subs = [None] * len(joint_names)
+    for i in xrange(len(joint_command_subs)):
+        joint_command_subs[i] = rospy.Subscriber(joint_names[i] + "_position_controller/command", Float64, 
+                                                 lambda msg, i=i: joint_command_cb(i,msg))
+    
+    while not rospy.is_shutdown():        
+        res, state=egm.receive_from_robot(0.1)        
+        if res:
+            if (len(state.joint_angles) != len(joint_names)):
+                raise Exception("controller_joint_names list length mismatch")
+            
+            joint_states = JointState()
+            joint_states.header.stamp = rospy.Time.now()
+            joint_states.name = joint_names
+            joint_states.position = state.joint_angles
+            joint_states_pub.publish(joint_states)
+            
+            for i in xrange(len(joint_setpoint)):
+                if joint_setpoint[i] is None:
+                    joint_setpoint[i] = state.joint_angles[i]
+            
+            with joint_setpoint_lock:
+                joint_angles=copy.copy(joint_setpoint)
+            egm.send_to_robot(joint_angles)
+    
+if __name__ == '__main__':
+    main()
+

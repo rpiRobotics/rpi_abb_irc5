@@ -1,0 +1,4 @@
+string signal
+---
+bool success
+int32 lvalue

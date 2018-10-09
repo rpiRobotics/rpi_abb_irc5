@@ -1,0 +1,12 @@
+string MSG_TYPE_INFO=1
+string MSG_TYPE_WARNING=2
+string MSG_TYPE_ERROR=3
+int32 msgtype
+int32 code
+time tstamp
+string[] args
+string title
+string desc
+string conseqs
+string causes
+string actions
