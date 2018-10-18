@@ -105,8 +105,9 @@ class EGM(object):
 
         planned=sensorMessage.planned
 
-        joint_angles2 = list(np.rad2deg(joint_angles))
-        planned.joints.joints.extend(joint_angles2)
+        if joint_angles is not None:
+            joint_angles2 = list(np.rad2deg(joint_angles))
+            planned.joints.joints.extend(joint_angles2)
 
         buf2=sensorMessage.SerializeToString()
 
