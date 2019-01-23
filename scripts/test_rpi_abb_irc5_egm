@@ -8,14 +8,14 @@ import numpy as np
 def main():
     try:
         egm=rpi_abb_irc5.EGM()
-
+        t1=time.time()
         while True:
             res, state=egm.receive_from_robot(.01)
-            angle=np.deg2rad(10*math.sin(time.time()))
+            angle=np.deg2rad(60*((time.time()-t1)/10))
             if res:
-                print "Joints: " + str(state.joint_angles)
+                print "ID: " + str(state.robot_message.header.seqno) + " Joints: " + str(np.rad2deg(state.joint_angles))
                 joint_angles=[angle]*6
-                egm.send_to_robot(joint_angles)
+                egm.send_to_robot(state.joint_angles)
     except KeyboardInterrupt:
         pass
 

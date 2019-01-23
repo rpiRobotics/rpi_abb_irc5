@@ -61,6 +61,8 @@ add_service_files(
   RapidGetDigitalIO.srv
   RapidSetDigitalIO.srv
   RapidReadEventLog.srv
+  RapidGetVariable.srv
+  RapidSetVariable.srv
 )
 
 ## Generate actions in the 'action' folder

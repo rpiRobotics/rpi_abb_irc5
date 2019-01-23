@@ -63,7 +63,7 @@
   <exec_depend>python-beautifulsoup</exec_depend>
   <exec_depend>python-protobuf</exec_depend>
   <exec_depend>python-requests</exec_depend>
-  <exec_depend>python-websocket</exec_depend>
+  <exec_depend>python-ws4py</exec_depend>
   <exec_depend>python-numpy</exec_depend>
 
 

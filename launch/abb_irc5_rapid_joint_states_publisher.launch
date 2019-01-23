@@ -1,0 +1,7 @@
+<launch>
+  <arg name="abb_irc5_uri" default="http://192.168.1.1/"/>
+
+  <node name="abb_irc5_rapid_joint_states_publisher" pkg="rpi_abb_irc5" type="abb_irc5_rapid_joint_states_publisher_ros" required="true">
+    <param name="abb_irc5_uri" value="$(arg abb_irc5_uri)"/>    
+  </node>  
+</launch>
