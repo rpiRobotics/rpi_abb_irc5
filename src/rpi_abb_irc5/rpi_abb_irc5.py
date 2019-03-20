@@ -85,7 +85,7 @@ class EGM(object):
 
         if robot_message.HasField('feedBack'):
             joints=robot_message.feedBack.joints.joints
-            joint_angles=np.array(np.deg2rad(list(joints)))
+            joint_angles=np.array(list(joints))
         if robot_message.HasField('rapidExecState'):
             rapid_running = robot_message.rapidExecState.state == robot_message.rapidExecState.RAPID_RUNNING
         if robot_message.HasField('motorState'):
@@ -110,7 +110,7 @@ class EGM(object):
         planned=sensorMessage.planned
 
         if joint_angles is not None:
-            joint_angles2 = list(np.rad2deg(np.rad2deg(joint_angles)))
+            joint_angles2 = list(np.rad2deg(joint_angles))
             planned.joints.joints.extend(joint_angles2)
 
         buf2=sensorMessage.SerializeToString()
